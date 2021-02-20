@@ -10,7 +10,7 @@ public class Repl {
                 continue;
             }
             Lexer lexer = new Lexer(line);
-            for(Token token=lexer.nextToken();token.getType()!=Token.TokenType.EOF;token= lexer.nextToken()){
+            for(Token token=lexer.nextToken();token.getType()!=TokenType.EOF;token= lexer.nextToken()){
                 System.out.println(token.getType()+token.getLiteral());
             }
         }

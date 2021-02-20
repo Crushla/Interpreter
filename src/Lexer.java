@@ -9,15 +9,15 @@ public class Lexer {
     int readPositon;
     //正在读取的字符
     char ch;
-    Map<String, Token.TokenType> map = new HashMap<String, Token.TokenType>() {
+    Map<String, TokenType> map = new HashMap<String, TokenType>() {
         {
-            put("fn", Token.TokenType.FUNCTION);
-            put("var", Token.TokenType.VAR);
-            put("true", Token.TokenType.TRUE);
-            put("false", Token.TokenType.FALSE);
-            put("if", Token.TokenType.IF);
-            put("else", Token.TokenType.ELSE);
-            put("return", Token.TokenType.RETURN);
+            put("fn", TokenType.FUNCTION);
+            put("var", TokenType.VAR);
+            put("true", TokenType.TRUE);
+            put("false", TokenType.FALSE);
+            put("if", TokenType.IF);
+            put("else", TokenType.ELSE);
+            put("return", TokenType.RETURN);
         }
     };
 
@@ -42,71 +42,71 @@ public class Lexer {
             case '=':
                 if (peekChar() == '=') {
                     readChar();
-                    token = new Token(Token.TokenType.EQ, "==");
+                    token = new Token(TokenType.EQ, "==");
                 } else {
-                    token = new Token(Token.TokenType.ASSIGN, Character.toString(ch));
+                    token = new Token(TokenType.ASSIGN, Character.toString(ch));
                 }
                 break;
             case '!':
                 if (peekChar() == '=') {
                     readChar();
-                    token = new Token(Token.TokenType.NOT_EQ, "!=");
+                    token = new Token(TokenType.NOT_EQ, "!=");
                 } else {
-                    token = new Token(Token.TokenType.BANG, Character.toString(ch));
+                    token = new Token(TokenType.BANG, Character.toString(ch));
                 }
                 break;
             case ';':
-                token = new Token(Token.TokenType.SEMICOLON, Character.toString(ch));
+                token = new Token(TokenType.SEMICOLON, Character.toString(ch));
                 break;
             case '(':
-                token = new Token(Token.TokenType.LPAREN, Character.toString(ch));
+                token = new Token(TokenType.LPAREN, Character.toString(ch));
                 break;
             case ')':
-                token = new Token(Token.TokenType.RPAREN, Character.toString(ch));
+                token = new Token(TokenType.RPAREN, Character.toString(ch));
                 break;
             case ',':
-                token = new Token(Token.TokenType.COMMA, Character.toString(ch));
+                token = new Token(TokenType.COMMA, Character.toString(ch));
                 break;
             case '+':
-                token = new Token(Token.TokenType.PLUS, Character.toString(ch));
+                token = new Token(TokenType.PLUS, Character.toString(ch));
                 break;
             case '-':
-                token = new Token(Token.TokenType.MINUS, Character.toString(ch));
+                token = new Token(TokenType.MINUS, Character.toString(ch));
                 break;
             case '*':
-                token = new Token(Token.TokenType.ASTERISK, Character.toString(ch));
+                token = new Token(TokenType.ASTERISK, Character.toString(ch));
                 break;
             case '/':
-                token = new Token(Token.TokenType.SLASH, Character.toString(ch));
+                token = new Token(TokenType.SLASH, Character.toString(ch));
                 break;
             case '<':
-                token = new Token(Token.TokenType.LT, Character.toString(ch));
+                token = new Token(TokenType.LT, Character.toString(ch));
                 break;
             case '>':
-                token = new Token(Token.TokenType.GT, Character.toString(ch));
+                token = new Token(TokenType.GT, Character.toString(ch));
                 break;
             case '{':
-                token = new Token(Token.TokenType.LBRACE, Character.toString(ch));
+                token = new Token(TokenType.LBRACE, Character.toString(ch));
                 break;
             case '}':
-                token = new Token(Token.TokenType.RBRACE, Character.toString(ch));
+                token = new Token(TokenType.RBRACE, Character.toString(ch));
                 break;
             case '\0':
-                token = new Token(Token.TokenType.EOF, "");
+                token = new Token(TokenType.EOF, "");
                 break;
             default:
                 if (isLetter(ch)) {
                     String literal = readIdentifier();
-                    Token.TokenType type = LookupIdent(literal);
+                    TokenType type = LookupIdent(literal);
                     token = new Token(type, literal);
                     return token;
                 } else if (isDigit(ch)) {
-                    Token.TokenType type = Token.TokenType.INT;
+                    TokenType type = TokenType.INT;
                     String literal = readNumber();
                     token = new Token(type, literal);
                     return token;
                 } else {
-                    token = new Token(Token.TokenType.ILLEGAL, Character.toString(ch));
+                    token = new Token(TokenType.ILLEGAL, Character.toString(ch));
                     readChar();
                     return token;
                 }
@@ -135,8 +135,8 @@ public class Lexer {
     }
 
     //判断是否是标识符
-    public Token.TokenType LookupIdent(String ident) {
-        return map.getOrDefault(ident, Token.TokenType.IDENT);
+    public TokenType LookupIdent(String ident) {
+        return map.getOrDefault(ident, TokenType.IDENT);
     }
 
     //读取数字
