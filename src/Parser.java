@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Parser {
     Lexer lexer;
@@ -8,13 +9,21 @@ public class Parser {
     //下一个Token
     Token peekToken;
     List<String> errors;
-
+    Map<TokenType, PrefixParseFn> PrefixParseFns;
+    Map<TokenType, InfixParseFn> InfixParseFns;
+    public void registerPrefix(TokenType tokenType,PrefixParseFn fn){
+        PrefixParseFns.put(tokenType,fn);
+    }
+    public void registerInfix(TokenType tokenType,InfixParseFn fn){
+        InfixParseFns.put(tokenType,fn);
+    }
     public Parser(Lexer lexer) {
         lexer = lexer;
         errors = new ArrayList<>();
         nextToken();
         nextToken();
     }
+
 
     public List<String> Errors() {
         return errors;
@@ -53,12 +62,12 @@ public class Parser {
             case RETURN:
                 return parseReturnStatement();
             default:
-                return null;
+                return parseExpressionStatement();
         }
     }
 
     public Statement parseVarStatement() {
-        Token token =curToken;
+        Token token = curToken;
         //var n =2;
         //判断是否为变量
         //如果是变量就会向前一个token
@@ -78,16 +87,26 @@ public class Parser {
         }
         return new VarStatement(token, name, value);
     }
+
     public Statement parseReturnStatement() {
         //return 2
-        Token token =curToken;
+        Token token = curToken;
         nextToken();
         //如果不是分号就继续找下一个token
         //跳过了表达式部分
         while (!curTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
-        return new ReturnStatement(token,value );
+        return new ReturnStatement(token, value);
+    }
+
+    public ExpressionStatement parseExpressionStatement(){
+        Expression expression=parseExpression(LOWST);
+        Token token=curToken;
+        if(peekTokenIs(TokenType.SEMICOLON)){
+            nextToken();
+        }
+        return new ExpressionStatement(curToken,expression);
     }
     //检查当前的token类型
     public boolean curTokenIs(TokenType type) {
@@ -118,16 +137,10 @@ public class Parser {
 
     //递归入口
     //递归解析其余部分
-    public parseExpression() {
-        if (currentToken() == INTEGER_TOKEN) {
-            if (nextToken() == PLUS_TOKEN) {
-                return parseOperatorExpression();
-            } else if (nextToken() == SEMICOLON_TOEN) {
-                return parseIntegerLiteral();
-            }
-        } else if (currentToken() == LEFT_PAREN) {
-            return parseGroupedExpression();
-        }
+    public Expression parseExpression(int precedence) {
+        PrefixParseFn prefix = PrefixParseFns.get(curToken.getType());
+        if(prefix==null)return null;
+        leftExp
     }
 
     public parseOperatorExpression() {
@@ -137,4 +150,25 @@ public class Parser {
         operatorExpression.right = parseExpression();
         return operatorExpression();
     }
+
+
+}
+
+//前缀操作符时调用
+class PrefixParseFn {
+
+}
+
+//Expression表示中缀操作符的左侧
+class InfixParseFn {
+
+}
+enum priority{
+    LOWEST,
+    EQUALS,     //==
+    LESSGREATER,//> or <
+    SUM,        //+
+    PRODUCT,    //*
+    PREFIX,     //-X or !X
+    CALL        //fun(x)
 }

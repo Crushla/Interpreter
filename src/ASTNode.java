@@ -4,6 +4,9 @@ import java.util.List;
 public interface ASTNode {
     //返回与它关联的token的值
     String TokenLiteral();
+
+    //添加String方法便于调试
+    String string();
 }
 
 
@@ -29,6 +32,11 @@ class Statement implements ASTNode {
     public String TokenLiteral() {
         return Token.getLiteral();
     }
+
+    @Override
+    public String string() {
+        return null;
+    }
 }
 
 class Expression implements ASTNode {
@@ -51,6 +59,11 @@ class Expression implements ASTNode {
 
     @Override
     public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
         return Token.getLiteral();
     }
 }
@@ -78,6 +91,15 @@ class Program implements ASTNode {
         } else {
             return "";
         }
+    }
+
+    @Override
+    public String string() {
+        StringBuilder out = new StringBuilder();
+        for (Statement statement : statements) {
+            out.append(statement.string());
+        }
+        return out.toString();
     }
 }
 
@@ -110,6 +132,11 @@ class Identifier extends Expression {
     @Override
     public String TokenLiteral() {
         return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
+        return Value;
     }
 }
 
@@ -153,6 +180,17 @@ class VarStatement extends Statement {
     public String TokenLiteral() {
         return Token.getLiteral();
     }
+
+    @Override
+    public String string() {
+        String out = "";
+        out = out + TokenLiteral() + " " + Name.string() + " = ";
+        if (Value != null) {
+            out += Value.string();
+        }
+        out += ";";
+        return out;
+    }
 }
 
 //Return返回值
@@ -186,5 +224,36 @@ class ReturnStatement extends Statement {
     @Override
     public String TokenLiteral() {
         return Token.getLiteral();
+    }
+    @Override
+    public String string() {
+        String out = "";
+        out = out + TokenLiteral() + " ";
+        if (Value != null) {
+            out += Value.string();
+        }
+        out += ";";
+        return out;
+    }
+}
+
+class ExpressionStatement extends Statement {
+    private Token Token;
+    private Expression Value;
+
+    public ExpressionStatement(Token token, Expression value) {
+        Token = token;
+        Value = value;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+    @Override
+    public String string() {
+       if(Value!=null)
+           return Value.string();
+        return "";
     }
 }
