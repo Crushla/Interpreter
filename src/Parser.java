@@ -1,37 +1,85 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
 
+class precedences {
+    public static int LOWEST = 0,
+            EQUALS = 1,     //==
+            LESSGREATER = 2,//> or <
+            SUM = 3,        //+
+            PRODUCT = 4,    //*
+            PREFIX = 5,     //-X or !X
+            CALL = 6;        //fun(x)
+}
+
+//不支持错误提示
 public class Parser {
     Lexer lexer;
     //当前的Token
     Token curToken;
     //下一个Token
     Token peekToken;
-    List<String> errors;
-    Map<TokenType, PrefixParseFn> PrefixParseFns;
-    Map<TokenType, InfixParseFn> InfixParseFns;
-    public void registerPrefix(TokenType tokenType,PrefixParseFn fn){
-        PrefixParseFns.put(tokenType,fn);
-    }
-    public void registerInfix(TokenType tokenType,InfixParseFn fn){
-        InfixParseFns.put(tokenType,fn);
-    }
+
     public Parser(Lexer lexer) {
         lexer = lexer;
-        errors = new ArrayList<>();
         nextToken();
         nextToken();
     }
 
+    Map<TokenType, Integer> precedencesLeval = new HashMap<TokenType, Integer>() {
+        {
+            put(TokenType.EQ, precedences.EQUALS);
+            put(TokenType.NOT_EQ, precedences.EQUALS);
+            put(TokenType.LT, precedences.LESSGREATER);
+            put(TokenType.GT, precedences.LESSGREATER);
+            put(TokenType.PLUS, precedences.SUM);
+            put(TokenType.MINUS, precedences.SUM);
+            put(TokenType.ASTERISK, precedences.PRODUCT);
+            put(TokenType.SLASH, precedences.PRODUCT);
+        }
+    };
 
-    public List<String> Errors() {
-        return errors;
+    //下一个优先级
+    public int peekPrecedence() {
+        try {
+            Integer i = precedencesLeval.get(peekToken.getType());
+            return i;
+        } catch (Exception e) {
+            return precedences.LOWEST;
+        }
     }
-    //当前错误
-    public void peekError(TokenType type) {
-        errors.add(String.format("expected next token to be %s,got %s instead", type, peekToken.getType()));
+
+    public int curPrecedence() {
+        try {
+            Integer i = precedencesLeval.get(peekToken.getType());
+            return i;
+        } catch (Exception e) {
+            return precedences.LOWEST;
+        }
     }
+
+    //检查当前的token类型
+    public boolean curTokenIs(TokenType type) {
+        return curToken.getType() == type;
+    }
+
+    //检查下一个token类型
+    public boolean peekTokenIs(TokenType type) {
+        return peekToken.getType() == type;
+    }
+
+    //检查peekToken类型
+    public boolean expectPeek(TokenType type) {
+        if (peekTokenIs(type)) {
+            nextToken();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     public void nextToken() {
         curToken = peekToken;
@@ -79,10 +127,10 @@ public class Parser {
         if (!expectPeek(TokenType.ASSIGN)) {
             return null;
         }
+        nextToken();
+        Expression value=parseExpression(precedences.LOWEST);
 
-        //如果不是分号就继续找下一个token
-        //跳过了表达式部分
-        while (!curTokenIs(TokenType.SEMICOLON)) {
+        if (peekTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
         return new VarStatement(token, name, value);
@@ -92,83 +140,164 @@ public class Parser {
         //return 2
         Token token = curToken;
         nextToken();
+        Expression value=parseExpression(precedences.LOWEST);
         //如果不是分号就继续找下一个token
         //跳过了表达式部分
-        while (!curTokenIs(TokenType.SEMICOLON)) {
+        if (peekTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
         return new ReturnStatement(token, value);
     }
 
-    public ExpressionStatement parseExpressionStatement(){
-        Expression expression=parseExpression(LOWST);
-        Token token=curToken;
-        if(peekTokenIs(TokenType.SEMICOLON)){
+    //解析表达式
+    public ExpressionStatement parseExpressionStatement() {
+        Expression expression = parseExpression(precedences.LOWEST);
+        Token token = curToken;
+        if (peekTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
-        return new ExpressionStatement(curToken,expression);
-    }
-    //检查当前的token类型
-    public boolean curTokenIs(TokenType type) {
-        return curToken.getType() == type;
+        return new ExpressionStatement(curToken, expression);
     }
 
-    //检查下一个token类型
-    public boolean peekTokenIs(TokenType type) {
-        return peekToken.getType() == type;
-    }
-
-    //检查peekToken类型
-    public boolean expectPeek(TokenType type) {
-        if (peekTokenIs(type)) {
+    //解析块
+    public BlockStatement parseBlockStatement(){
+        Token token =curToken;
+        List<Statement>statements=new ArrayList<>();
+        nextToken();
+        //{}为块
+        // 直到块语句结束或遇到EOF
+        while(!curTokenIs(TokenType.RBRACE)&&!curTokenIs(TokenType.EOF)){
+            Statement statement = parseStatement();
+            if(statement!=null)
+                statements.add(statement);
             nextToken();
-            return true;
-        } else {
-            peekError(type);
-            return false;
         }
+        return new BlockStatement(token,statements);
     }
-
-    public parseIdentifier() {
-        identifier = newIdentifierASTNode();
-        identifier.token = currentToken();
-        return identifier;
-    }
-
     //递归入口
     //递归解析其余部分
     public Expression parseExpression(int precedence) {
-        PrefixParseFn prefix = PrefixParseFns.get(curToken.getType());
-        if(prefix==null)return null;
-        leftExp
+        Expression leftExp = parsePrefix();
+        if (leftExp == null) {
+            return null;
+        }
+        //尝试为下一个token寻找，如果找到就调用，直到遇到更高优先级的token
+        //如果不为分号，就继续
+        //分号和peekPrecedence优先级高于高于precedence
+        //1+2+3
+        //第一次循环1为left
+        //第二次循环1+2为left
+        while (!peekTokenIs(TokenType.SEMICOLON) && precedence < peekPrecedence()) {
+            nextToken();
+            Expression nextExp = parseInfix(leftExp);
+            if(nextExp==null)return leftExp;
+            leftExp = nextExp;
+        }
+        return leftExp;
     }
 
-    public parseOperatorExpression() {
-        operatorExpression = newOperatorExpression();
-        operatorExpression.left = parseIntegerLiteral();
-        operatorExpression.operator = currentToken();
-        operatorExpression.right = parseExpression();
-        return operatorExpression();
+    //前缀表达式
+    public Expression parsePrefix() {
+        switch (curToken.getType()) {
+            case IDENT:
+                return parseIdentifier();
+            case INT:
+                return parseIntegerLiteral();
+            case MINUS:
+            case BANG:
+                return parsePrefixExpression();
+            case TRUE:
+            case FALSE:
+                return parseBoolean();
+            case LPAREN:
+                return parseGroupExpression();
+            case IF:
+                return parseIFExpression();
+        }
+
     }
 
+    //中缀表达式
+    public Expression parseInfix(Expression leftExp) {
+        switch (peekToken.getType()) {
+            case PLUS:
+            case MINUS:
+            case SLASH:
+            case ASTERISK:
+            case EQ:
+            case NOT_EQ:
+            case LT:
+            case GT:
+                return parseInfixExpression(leftExp);
 
-}
+        }
+    }
 
-//前缀操作符时调用
-class PrefixParseFn {
+    public Expression parseIdentifier() {
+        return new Identifier(curToken, curToken.getLiteral());
+    }
 
-}
+    //不支持错误提示
+    public Expression parseIntegerLiteral() {
+        Token token = curToken;
+        int i = Integer.parseInt(token.getLiteral());
+        return new IntegerLiteral(token, i);
+    }
 
-//Expression表示中缀操作符的左侧
-class InfixParseFn {
+    //前缀表达式
+    public Expression parsePrefixExpression() {
+        Token token = curToken;
+        String operator = curToken.getLiteral();
+        nextToken();
+        Expression rigth = parseExpression(precedences.PREFIX);
+        return new PrefixExpression(curToken, operator, rigth);
+    }
 
-}
-enum priority{
-    LOWEST,
-    EQUALS,     //==
-    LESSGREATER,//> or <
-    SUM,        //+
-    PRODUCT,    //*
-    PREFIX,     //-X or !X
-    CALL        //fun(x)
+    //中缀表达式
+    //left为左侧字段
+    public Expression parseInfixExpression(Expression left) {
+        //中缀表达式的操作符优先级赋值给局部变量优先级
+        int precedence = curPrecedence();
+        nextToken();
+        Expression right = parseExpression(precedence);
+        return new InfixExpression(curToken, left, curToken.getLiteral(), right);
+    }
+
+    public Expression parseBoolean(){
+        return new Boolean(curToken,curTokenIs(TokenType.TRUE));
+    }
+
+    public Expression parseGroupExpression(){
+        nextToken();
+        Expression expression=parseExpression(precedences.LOWEST);
+        if(!expectPeek(TokenType.RPAREN)){
+            return null;
+        }
+        return expression;
+    }
+
+    public Expression parseIFExpression(){
+        //参数
+        if(!expectPeek(TokenType.LPAREN)){
+            return null;
+        }
+        nextToken();
+        Expression condition = parseExpression(precedences.LOWEST);
+        if(!expectPeek(TokenType.RPAREN)){
+            return null;
+        }
+        if(!expectPeek(TokenType.LBRACE)){
+            return null;
+        }
+        BlockStatement Consequence=parseBlockStatement();
+        BlockStatement Alternative=null;
+        if(peekTokenIs(TokenType.ELSE)){
+            nextToken();
+            if(!expectPeek(TokenType.LBRACE)){
+                return null;
+            }
+             Alternative = parseBlockStatement();
+        }
+        return new IFExpression(curToken,condition,Consequence,Alternative);
+    }
 }
