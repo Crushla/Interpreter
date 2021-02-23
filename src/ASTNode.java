@@ -103,7 +103,7 @@ class Program implements ASTNode {
     }
 }
 
-//标识符
+//变量
 class Identifier extends Expression {
     private Token Token;
     private String Value;
@@ -261,46 +261,6 @@ class ReturnStatement extends Statement {
     }
 }
 
-//Integer类型
-class IntegerLiteral extends Expression {
-    Token Token;
-    int Value;
-
-    public IntegerLiteral(Token token, int value) {
-        Token = token;
-        Value = value;
-    }
-
-    @Override
-    public Token getToken() {
-        return Token;
-    }
-
-    @Override
-    public void setToken(Token token) {
-        Token = token;
-    }
-
-    public int getValue() {
-        return Value;
-    }
-
-    public void setValue(int value) {
-        Value = value;
-    }
-
-    @Override
-    public String TokenLiteral() {
-        return Token.getLiteral();
-    }
-
-    @Override
-    public String string() {
-        return Token.getLiteral();
-    }
-}
-
-
 class PrefixExpression extends Expression {
     Token Token;
 
@@ -411,6 +371,45 @@ class InfixExpression extends Expression {
         String out = "";
         out = out + "(" + Left.string() + " " + Operator + " " + Right.string() + ")";
         return out;
+    }
+}
+
+//Integer类型
+class IntegerLiteral extends Expression {
+    Token Token;
+    int Value;
+
+    public IntegerLiteral(Token token, int value) {
+        Token = token;
+        Value = value;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public int getValue() {
+        return Value;
+    }
+
+    public void setValue(int value) {
+        Value = value;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
+        return Token.getLiteral();
     }
 }
 
@@ -554,5 +553,115 @@ class BlockStatement extends Statement {
             out.append(statement.string());
         }
         return out.toString();
+    }
+}
+
+//函数
+class FunctionLiteral extends Expression {
+    Token Token;
+    List<Identifier> Parameters;
+    BlockStatement Body;
+
+    public FunctionLiteral(Token token, List<Identifier> parameters, BlockStatement body) {
+        Token = token;
+        Parameters = parameters;
+        Body = body;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public List<Identifier> getParameters() {
+        return Parameters;
+    }
+
+    public void setParameters(List<Identifier> parameters) {
+        Parameters = parameters;
+    }
+
+    public BlockStatement getBody() {
+        return Body;
+    }
+
+    public void setBody(BlockStatement body) {
+        Body = body;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
+        String out = "";
+        StringBuilder params = new StringBuilder();
+        for (Identifier p : Parameters) {
+            params.append(p);
+        }
+        out = out + TokenLiteral() + "(" + String.join(params.toString(), ",") + ")" + Body.string();
+        return out;
+    }
+}
+
+class CallExpression extends Expression {
+    Token Token;
+    Expression Function;
+    List<Expression> Arguments;
+
+    public CallExpression(Token token, Expression function, List<Expression> arguments) {
+        Token = token;
+        Function = function;
+        Arguments = arguments;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public Expression getFunction() {
+        return Function;
+    }
+
+    public void setFunction(Expression function) {
+        Function = function;
+    }
+
+    public List<Expression> getArguments() {
+        return Arguments;
+    }
+
+    public void setArguments(List<Expression> arguments) {
+        Arguments = arguments;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
+        String out = "";
+        StringBuilder args = new StringBuilder();
+
+        for (Expression e : Arguments) {
+            args.append(e);
+        }
+        out = out + Function.string() + "(" + String.join(args.toString(), ",") + ")";
+        return out;
     }
 }

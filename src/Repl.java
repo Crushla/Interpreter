@@ -9,10 +9,18 @@ public class Repl {
             if (line == null) {
                 continue;
             }
+            if(line.equals("exit()"))
+                break;
+
             Lexer lexer = new Lexer(line);
-            for(Token token=lexer.nextToken();token.getType()!=TokenType.EOF;token= lexer.nextToken()){
-                System.out.println(token.getType()+token.getLiteral());
+            for(Token token= lexer.nextToken();token.getType()!=TokenType.EOF;token=lexer.nextToken()){
+                System.out.println(token.getLiteral());
             }
+            System.out.println("**********************");
+            lexer = new Lexer(line);
+            Parser parser=new Parser(lexer);
+            Program program = parser.ParseProgram();
+            System.out.println(program.string());
         }
     }
 }

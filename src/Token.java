@@ -1,4 +1,5 @@
 public class Token {
+    //Token类型和值
     private TokenType Type;
     private String Literal;
 
