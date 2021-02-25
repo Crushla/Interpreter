@@ -20,9 +20,11 @@ public class Evaluation {
             case InfixExpression:
                 return evalInfixExpression((InfixExpression) node);
             case BlockStatement:
-                return evalStatements(((BlockStatement)node).getStatements());
+                return evalBlockStatement((BlockStatement)node);
             case IfExpression:
                 return evalIfExpression((IFExpression)node);
+            case ReturnStatement:
+                return new TypeReturnValue(Eval(((ReturnStatement) node).getValue()));
             default:
                 return null;
         }
@@ -32,6 +34,9 @@ public class Evaluation {
         Object result = null;
         for (Statement statement : statements) {
             result = Eval(statement);
+            if(result.getClass().getName().equals("TypeReturnValue")){
+                return ((TypeReturnValue)result).getValue();
+            }
         }
         return result;
     }
@@ -102,7 +107,11 @@ public class Evaluation {
     public Object evalIfExpression(IFExpression ifExpression){
         Object condition = Eval(ifExpression.getCondition());
         if(isTruthy(condition)){
-
+            return Eval(ifExpression.getConsequence());
+        }else if(ifExpression.getAlternative()!=null){
+            return Eval(ifExpression.getAlternative());
+        }else{
+            return Null;
         }
     }
 
@@ -116,4 +125,16 @@ public class Evaluation {
         }
         return true;
     }
+
+    public Object evalBlockStatement(BlockStatement blockStatement){
+        Object result = null;
+        for(Statement statement: blockStatement.getStatements()){
+            result=Eval(statement);
+            if(result!=null&&result.getClass().getName().equals("TypeReturnValue")){
+                return result;
+            }
+        }
+        return result;
+    }
+    
 }

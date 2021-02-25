@@ -8,7 +8,8 @@ enum NodeType {
     PrefixExpression,
     InfixExpression,
     BlockStatement,
-    IfExpression
+    IfExpression,
+    ReturnStatement,
 }
 
 public interface AST {
@@ -297,6 +298,11 @@ class ReturnStatement extends Statement {
     @Override
     public String TokenLiteral() {
         return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.ReturnStatement;
     }
 
     @Override
@@ -591,8 +597,8 @@ class IFExpression extends Expression {
 }
 
 class BlockStatement extends Statement {
-    Token Token;
-    List<Statement> Statements;
+    private Token Token;
+    private List<Statement> Statements;
 
     public BlockStatement(Token token, List<Statement> statements) {
         Token = token;

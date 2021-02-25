@@ -1,7 +1,9 @@
 class ObjectType {
     public static String INTEGER_OBJ = "INTEGER",
             BOOLEAN_OBJ = "BOOLEAN",
-            NULL_OBJ = "NULL";
+            NULL_OBJ = "NULL",
+            RETURN_VALUE_OBJ = "RETURN_VALUE",
+            ERROR_OBJ = "ERROR";
 }
 
 public interface Object {
@@ -12,7 +14,7 @@ public interface Object {
 
 //integer
 class TypeInteger implements Object {
-     private int Value;
+    private int Value;
 
     public TypeInteger(int value) {
         Value = value;
@@ -39,7 +41,7 @@ class TypeInteger implements Object {
 
 //boolean
 class TypeBoolean implements Object {
-   private boolean Value;
+    private boolean Value;
 
     public boolean isValue() {
         return Value;
@@ -77,5 +79,57 @@ class TypeNULL implements Object {
     @Override
     public String Inspect() {
         return "null";
+    }
+}
+
+class TypeReturnValue implements Object {
+    Object Value;
+
+    public TypeReturnValue(Object value) {
+        Value = value;
+    }
+
+    public Object getValue() {
+        return Value;
+    }
+
+    public void setValue(Object value) {
+        Value = value;
+    }
+
+    @Override
+    public String ObjectType() {
+        return ObjectType.RETURN_VALUE_OBJ;
+    }
+
+    @Override
+    public String Inspect() {
+        return Value.Inspect();
+    }
+}
+
+class TypeError implements Object{
+    private String Message;
+
+    public TypeError(String message) {
+        Message = message;
+    }
+
+    public String getMessage() {
+        return Message;
+    }
+
+    public void setMessage(String message) {
+        Message = message;
+    }
+
+    @Override
+    public String ObjectType() {
+        return ObjectType.ERROR_OBJ;
+    }
+
+    @Override
+    public String Inspect() {
+        return "Error"+Message;
     }
 }
