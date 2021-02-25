@@ -1,3 +1,6 @@
+import com.sun.deploy.util.StringUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 
 enum NodeType {
@@ -10,6 +13,10 @@ enum NodeType {
     BlockStatement,
     IfExpression,
     ReturnStatement,
+    VarStatement,
+    Identifier,
+    FunctionLiteral,
+    CallExpression;
 }
 
 public interface AST {
@@ -158,6 +165,11 @@ class Identifier extends Expression {
     }
 
     @Override
+    public NodeType NodeType() {
+        return NodeType.Identifier;
+    }
+
+    @Override
     public String TokenLiteral() {
         return Token.getLiteral();
     }
@@ -224,6 +236,11 @@ class VarStatement extends Statement {
         Token = token;
         Name = name;
         Value = value;
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.VarStatement;
     }
 
     public Token getToken() {
@@ -645,9 +662,9 @@ class BlockStatement extends Statement {
 
 //函数
 class FunctionLiteral extends Expression {
-    Token Token;
-    List<Identifier> Parameters;
-    BlockStatement Body;
+    private Token Token;
+    private List<Identifier> Parameters;
+    private BlockStatement Body;
 
     public FunctionLiteral(Token token, List<Identifier> parameters, BlockStatement body) {
         Token = token;
@@ -687,21 +704,24 @@ class FunctionLiteral extends Expression {
     }
 
     @Override
+    public NodeType NodeType() {
+        return NodeType.FunctionLiteral;
+    }
+
+    @Override
     public String string() {
         String out = "";
-        StringBuilder params = new StringBuilder();
-        for (Identifier p : Parameters) {
-            params.append(p);
-        }
-        out = out + TokenLiteral() + "(" + String.join(params.toString(), ",") + ")" + Body.string();
+        List<String> list = new ArrayList<>();
+        for (Identifier p : Parameters) list.add(p.string());
+        out = out + TokenLiteral() + "(" + StringUtils.join(list, ",") + ")" + Body.string();
         return out;
     }
 }
 
 class CallExpression extends Expression {
-    Token Token;
-    Expression Function;
-    List<Expression> Arguments;
+    private Token Token;
+    private Expression Function;
+    private List<Expression> Arguments;
 
     public CallExpression(Token token, Expression function, List<Expression> arguments) {
         Token = token;
@@ -741,14 +761,16 @@ class CallExpression extends Expression {
     }
 
     @Override
+    public NodeType NodeType() {
+        return NodeType.CallExpression;
+    }
+
+    @Override
     public String string() {
         String out = "";
-        StringBuilder args = new StringBuilder();
-
-        for (Expression e : Arguments) {
-            args.append(e);
-        }
-        out = out + Function.string() + "(" + String.join(args.toString(), ",") + ")";
+        List<String> list = new ArrayList<>();
+        for (Expression e : Arguments) list.add(e.string());
+        out = out + Function.string() + "(" + StringUtils.join(list, ",") + ")";
         return out;
     }
 }
