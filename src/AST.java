@@ -1,16 +1,28 @@
 import java.util.List;
 
+enum NodeType {
+    Program,
+    ExpressionStatement,
+    IntegerLiteral,
+    Boolean,
+    PrefixExpression,
+    InfixExpression,
+    BlockStatement,
+    IfExpression
+}
 
-public interface ASTNode {
+public interface AST {
     //返回与它关联的token的值
     String TokenLiteral();
+
+    NodeType NodeType();
 
     //添加String方法便于调试
     String string();
 }
 
 
-class Statement implements ASTNode {
+class Statement implements AST {
     private Token Token;
 
     Statement() {
@@ -34,12 +46,17 @@ class Statement implements ASTNode {
     }
 
     @Override
+    public NodeType NodeType() {
+        return null;
+    }
+
+    @Override
     public String string() {
         return null;
     }
 }
 
-class Expression implements ASTNode {
+class Expression implements AST {
     private Token Token;
 
     public Expression() {
@@ -63,13 +80,18 @@ class Expression implements ASTNode {
     }
 
     @Override
+    public NodeType NodeType() {
+        return null;
+    }
+
+    @Override
     public String string() {
         return Token.getLiteral();
     }
 }
 
 //Node的第一个实现
-class Program implements ASTNode {
+class Program implements AST {
     private List<Statement> statements;
 
     public List<Statement> getStatements() {
@@ -91,6 +113,11 @@ class Program implements ASTNode {
         } else {
             return "";
         }
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.Program;
     }
 
     @Override
@@ -151,8 +178,31 @@ class ExpressionStatement extends Statement {
     }
 
     @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public Expression getValue() {
+        return Value;
+    }
+
+    public void setValue(Expression value) {
+        Value = value;
+    }
+
+    @Override
     public String TokenLiteral() {
         return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.ExpressionStatement;
     }
 
     @Override
@@ -263,7 +313,6 @@ class ReturnStatement extends Statement {
 
 class PrefixExpression extends Expression {
     Token Token;
-
     String Operator;
     Expression Right;
 
@@ -304,6 +353,11 @@ class PrefixExpression extends Expression {
         return Token.getLiteral();
     }
 
+    @Override
+    public NodeType NodeType() {
+        return NodeType.PrefixExpression;
+    }
+
     //前缀操作符有-和！
     @Override
     public String string() {
@@ -316,6 +370,8 @@ class PrefixExpression extends Expression {
 class InfixExpression extends Expression {
     Token Token;
     Expression Left;
+
+
     String Operator;
     Expression Right;
 
@@ -365,6 +421,11 @@ class InfixExpression extends Expression {
         return Token.getLiteral();
     }
 
+    @Override
+    public NodeType NodeType() {
+        return NodeType.InfixExpression;
+    }
+
     //中缀表达式
     @Override
     public String string() {
@@ -408,6 +469,11 @@ class IntegerLiteral extends Expression {
     }
 
     @Override
+    public NodeType NodeType() {
+        return NodeType.IntegerLiteral;
+    }
+
+    @Override
     public String string() {
         return Token.getLiteral();
     }
@@ -443,6 +509,11 @@ class Boolean extends Expression {
     @Override
     public String TokenLiteral() {
         return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.Boolean;
     }
 
     @Override
@@ -504,6 +575,11 @@ class IFExpression extends Expression {
     }
 
     @Override
+    public NodeType NodeType() {
+        return NodeType.IfExpression;
+    }
+
+    @Override
     public String string() {
         String out = "";
         out = out + "if" + Condition.string() + " " + Consequence.string();
@@ -521,6 +597,11 @@ class BlockStatement extends Statement {
     public BlockStatement(Token token, List<Statement> statements) {
         Token = token;
         Statements = statements;
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.BlockStatement;
     }
 
     @Override

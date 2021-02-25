@@ -44,7 +44,7 @@ public class Lexer {
                     readChar();
                     token = new Token(TokenType.EQ, "==");
                 } else {
-                    token = new Token(TokenType.ASSIGN, Character.toString(ch));
+                    token = new Token(TokenType.ASSIGN, "=");
                 }
                 break;
             case '!':
@@ -52,44 +52,44 @@ public class Lexer {
                     readChar();
                     token = new Token(TokenType.NOT_EQ, "!=");
                 } else {
-                    token = new Token(TokenType.BANG, Character.toString(ch));
+                    token = new Token(TokenType.BANG, "!");
                 }
                 break;
             case ';':
-                token = new Token(TokenType.SEMICOLON, Character.toString(ch));
+                token = new Token(TokenType.SEMICOLON, ";");
                 break;
             case '(':
-                token = new Token(TokenType.LPAREN, Character.toString(ch));
+                token = new Token(TokenType.LPAREN, "(");
                 break;
             case ')':
-                token = new Token(TokenType.RPAREN, Character.toString(ch));
+                token = new Token(TokenType.RPAREN, ")");
                 break;
             case ',':
-                token = new Token(TokenType.COMMA, Character.toString(ch));
+                token = new Token(TokenType.COMMA, ",");
                 break;
             case '+':
-                token = new Token(TokenType.PLUS, Character.toString(ch));
+                token = new Token(TokenType.PLUS,"+");
                 break;
             case '-':
-                token = new Token(TokenType.MINUS, Character.toString(ch));
+                token = new Token(TokenType.MINUS, "-");
                 break;
             case '*':
-                token = new Token(TokenType.ASTERISK, Character.toString(ch));
+                token = new Token(TokenType.ASTERISK, "*");
                 break;
             case '/':
-                token = new Token(TokenType.SLASH, Character.toString(ch));
+                token = new Token(TokenType.SLASH, "/");
                 break;
             case '<':
-                token = new Token(TokenType.LT, Character.toString(ch));
+                token = new Token(TokenType.LT, "<");
                 break;
             case '>':
-                token = new Token(TokenType.GT, Character.toString(ch));
+                token = new Token(TokenType.GT, ">");
                 break;
             case '{':
-                token = new Token(TokenType.LBRACE, Character.toString(ch));
+                token = new Token(TokenType.LBRACE, "{");
                 break;
             case '}':
-                token = new Token(TokenType.RBRACE, Character.toString(ch));
+                token = new Token(TokenType.RBRACE, "}");
                 break;
             case '\0':
                 token = new Token(TokenType.EOF, "");

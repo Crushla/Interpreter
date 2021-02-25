@@ -91,7 +91,7 @@ public class Parser {
     public Program ParseProgram() {
         //Statement[]因为要初始化,故改用list
         //构造AST的根节点，然后遍历Token，直到标记是EOF为止
-        Program program = new Program(new ArrayList<Statement>());
+        Program program = new Program(new ArrayList<>());
         while (!curTokenIs(TokenType.EOF)) {
             Statement statement = parseStatement();
             if (statement != null) {
