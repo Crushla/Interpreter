@@ -16,6 +16,8 @@ public class Evaluation {
                 return new TypeInteger(((IntegerLiteral) node).getValue());
             case Boolean:
                 return nativeBoolToBoolean(((Boolean) node).getValue());
+            case StringLiteral:
+                return new TypeString(((StringLiteral) node).getValue());
             case PrefixExpression:
                 return evalPrefixExpression((PrefixExpression) node, environment);
             case InfixExpression:
@@ -88,6 +90,8 @@ public class Evaluation {
 
         if (leftType.equals("TypeInteger") && rightType.equals("TypeInteger")) {
             return evalIntegerInfixExpression(infixExpression.getOperator(), left, right);
+        } else if (leftType.equals("TypeString") && rightType.equals("TypeString")) {
+            return evalStringInfixExpression(infixExpression.getOperator(), left, right);
         } else if (infixExpression.getOperator().equals("==")) {
             return nativeBoolToBoolean(left == right);
         } else if (infixExpression.getOperator().equals("!=")) {
@@ -116,7 +120,16 @@ public class Evaluation {
             case "!=":
                 return nativeBoolToBoolean(((TypeInteger) left).getValue() != ((TypeInteger) right).getValue());
             default:
-                return new TypeNULL();
+                return Null;
+        }
+    }
+
+    public Object evalStringInfixExpression(String operator, Object left, Object right) {
+        switch (operator){
+            case "+":
+                return new TypeString(((TypeString)left).getValue()+((TypeString)right).getValue());
+            default:
+                return Null;
         }
     }
 

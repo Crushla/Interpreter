@@ -8,6 +8,7 @@ enum NodeType {
     ExpressionStatement,
     IntegerLiteral,
     Boolean,
+    StringLiteral,
     PrefixExpression,
     InfixExpression,
     BlockStatement,
@@ -16,7 +17,9 @@ enum NodeType {
     VarStatement,
     Identifier,
     FunctionLiteral,
-    CallExpression;
+    CallExpression,
+    ArrayLiteral,
+    IndexExpression,
 }
 
 public interface AST {
@@ -335,9 +338,9 @@ class ReturnStatement extends Statement {
 }
 
 class PrefixExpression extends Expression {
-    Token Token;
-    String Operator;
-    Expression Right;
+    private Token Token;
+    private String Operator;
+    private Expression Right;
 
     public PrefixExpression(Token token, String operator, Expression right) {
         Token = token;
@@ -391,12 +394,12 @@ class PrefixExpression extends Expression {
 }
 
 class InfixExpression extends Expression {
-    Token Token;
-    Expression Left;
+    private Token Token;
+    private Expression Left;
 
 
-    String Operator;
-    Expression Right;
+    private String Operator;
+    private Expression Right;
 
     public InfixExpression(Token token, Expression left, String operator, Expression right) {
         Token = token;
@@ -460,8 +463,8 @@ class InfixExpression extends Expression {
 
 //Integer类型
 class IntegerLiteral extends Expression {
-    Token Token;
-    int Value;
+    private Token Token;
+    private int Value;
 
     public IntegerLiteral(Token token, int value) {
         Token = token;
@@ -503,8 +506,8 @@ class IntegerLiteral extends Expression {
 }
 
 class Boolean extends Expression {
-    Token Token;
-    boolean Value;
+    private Token Token;
+    private boolean Value;
 
     public Boolean(Token token, boolean value) {
         Token = token;
@@ -545,11 +548,102 @@ class Boolean extends Expression {
     }
 }
 
+class StringLiteral extends Expression {
+    private Token Token;
+    private String Value;
+
+    public StringLiteral(Token token, String value) {
+        Token = token;
+        Value = value;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public String getValue() {
+        return Value;
+    }
+
+    public void setValue(String value) {
+        Value = value;
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.StringLiteral;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public String string() {
+        return Token.getLiteral();
+    }
+}
+
+//数组
+class ArrayLiteral extends Expression {
+    private Token Token;
+    private List<Expression> Elements;
+
+    public ArrayLiteral(Token token, List<Expression> elements) {
+        Token = token;
+        Elements = elements;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public List<Expression> getElements() {
+        return Elements;
+    }
+
+    public void setElements(List<Expression> elements) {
+        Elements = elements;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.ArrayLiteral;
+    }
+
+    @Override
+    public String string() {
+        String out = "";
+        List<String> list = new ArrayList<>();
+        for (Expression e : Elements) list.add(e.string());
+        out = out + "[" + StringUtils.join(list, ",") + "]";
+        return out;
+    }
+}
+
 class IFExpression extends Expression {
-    Token Token;
-    Expression Condition;
-    BlockStatement Consequence;
-    BlockStatement Alternative;
+    private Token Token;
+    private Expression Condition;
+    private BlockStatement Consequence;
+    private BlockStatement Alternative;
 
     public IFExpression(Token token, Expression condition, BlockStatement consequence, BlockStatement alternative) {
         Token = token;
@@ -771,6 +865,62 @@ class CallExpression extends Expression {
         List<String> list = new ArrayList<>();
         for (Expression e : Arguments) list.add(e.string());
         out = out + Function.string() + "(" + StringUtils.join(list, ",") + ")";
+        return out;
+    }
+}
+
+//下标
+class IndexExpression extends Expression{
+    Token Token;
+    Expression Left;
+    Expression Index;
+
+    public IndexExpression(Token token, Expression left, Expression index) {
+        Token = token;
+        Left = left;
+        Index = index;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public Expression getLeft() {
+        return Left;
+    }
+
+    public void setLeft(Expression left) {
+        Left = left;
+    }
+
+    public Expression getIndex() {
+        return Index;
+    }
+
+    public void setIndex(Expression index) {
+        Index = index;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.IndexExpression;
+    }
+
+    @Override
+    public String string() {
+        String out="";
+        out=out+"("+Left.string()+"["+Index.string()+"])";
         return out;
     }
 }

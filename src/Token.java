@@ -53,6 +53,8 @@ enum TokenType {
     RPAREN,   //)
     LBRACE,   //{
     RBRACE,   //}
+    LBRACKET, //[
+    RBRACKET, //]
 
     FUNCTION, //函数
     VAR,      //创建变量

@@ -10,7 +10,8 @@ class precedences {
             SUM = 3,        //+
             PRODUCT = 4,    //*
             PREFIX = 5,     //-X or !X
-            CALL = 6;        //fun(x)
+            CALL = 6,       //fun(x)
+            INDEX = 7;       //a[x]
 }
 
 //不支持错误提示
@@ -39,6 +40,7 @@ public class Parser {
             put(TokenType.ASTERISK, precedences.PRODUCT);
             put(TokenType.SLASH, precedences.PRODUCT);
             put(TokenType.LPAREN, precedences.CALL);
+            put(TokenType.LBRACKET, precedences.INDEX);
         }
     };
 
@@ -193,6 +195,10 @@ public class Parser {
                 return parseIdentifier();
             case INT:
                 return parseIntegerLiteral();
+            case STRING:
+                return parseString();
+            case LBRACKET:
+                return parseArrayLiteral();
             case MINUS:
             case BANG:
                 return parsePrefixExpression();
@@ -225,6 +231,8 @@ public class Parser {
                 return parseInfixExpression(leftExp);
             case LPAREN:
                 return parseCallExpression(leftExp);
+            case LBRACKET:
+                return parseIndexExpression(leftExp);
             default:
                 return null;
         }
@@ -268,6 +276,16 @@ public class Parser {
     //布尔类型
     public Expression parseBoolean() {
         return new Boolean(curToken, curTokenIs(TokenType.TRUE));
+    }
+
+    //字符串
+    public Expression parseString() {
+        return new StringLiteral(curToken, curToken.getLiteral());
+    }
+
+    //数组
+    public Expression parseArrayLiteral() {
+        return new ArrayLiteral(curToken, parseCallArguments());
     }
 
     //()组
@@ -336,6 +354,17 @@ public class Parser {
         }
         BlockStatement body = parseBlockStatement();
         return new FunctionLiteral(token, parameters, body);
+    }
+
+    //数组下标
+    public Expression parseIndexExpression(Expression left) {
+        Token token = curToken;
+        nextToken();
+        Expression expression = parseExpression(precedences.LOWEST);
+        if (!expectPeek(TokenType.RBRACKET)) {
+            return null;
+        }
+        return new IndexExpression(token, left, expression);
     }
 
     //解析参数

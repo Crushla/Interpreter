@@ -68,7 +68,7 @@ public class Lexer {
                 token = new Token(TokenType.COMMA, ",");
                 break;
             case '+':
-                token = new Token(TokenType.PLUS,"+");
+                token = new Token(TokenType.PLUS, "+");
                 break;
             case '-':
                 token = new Token(TokenType.MINUS, "-");
@@ -91,6 +91,13 @@ public class Lexer {
             case '}':
                 token = new Token(TokenType.RBRACE, "}");
                 break;
+            case '"':
+                token = new Token(TokenType.STRING, readString());
+                break;
+            case '[':
+                token = new Token(TokenType.LBRACKET, "[");
+            case ']':
+                token = new Token(TokenType.RBRACKET, "]");
             case '\0':
                 token = new Token(TokenType.EOF, "");
                 break;
@@ -161,5 +168,14 @@ public class Lexer {
             return '\0';
         else
             return input.charAt(readPositon);
+    }
+
+    public String readString() {
+        readChar();
+        int Position = currentPosition;
+        while (ch != '"') {
+            readChar();
+        }
+        return input.substring(Position, currentPosition);
     }
 }

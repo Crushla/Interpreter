@@ -1,14 +1,18 @@
 import com.sun.deploy.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class ObjectType {
     public static String INTEGER_OBJ = "INTEGER",
             BOOLEAN_OBJ = "BOOLEAN",
             NULL_OBJ = "NULL",
+            STRING_OBJ = "STRING",
             RETURN_VALUE_OBJ = "RETURN_VALUE",
-            FUNCTION_OBJ="FUNCTION";
+            FUNCTION_OBJ = "FUNCTION",
+            ARRAY_OBJ = "ARRAY";
 }
 
 public interface Object {
@@ -71,6 +75,32 @@ class TypeBoolean implements Object {
     }
 }
 
+class TypeString implements Object {
+    private String Value;
+
+    public TypeString(String value) {
+        Value = value;
+    }
+
+    public String getValue() {
+        return Value;
+    }
+
+    public void setValue(String value) {
+        Value = value;
+    }
+
+    @Override
+    public String ObjectType() {
+        return ObjectType.STRING_OBJ;
+    }
+
+    @Override
+    public String Inspect() {
+        return Value;
+    }
+}
+
 //null
 class TypeNULL implements Object {
     public TypeNULL() {
@@ -114,7 +144,7 @@ class TypeReturnValue implements Object {
     }
 }
 
-class TypeFunction implements Object{
+class TypeFunction implements Object {
     private List<Identifier> Parameters;
     private BlockStatement Body;
     private Environment Env;
@@ -156,10 +186,41 @@ class TypeFunction implements Object{
 
     @Override
     public String Inspect() {
-        String out="";
-        List<String >list=new ArrayList<>();
-        for (Identifier p:Parameters)list.add(p.string());
-        out=out+"fn"+"("+ StringUtils.join(list,",")+"){\n"+Body.string()+"\n}";
+        String out = "";
+        List<String> list = new ArrayList<>();
+        for (Identifier p : Parameters) list.add(p.string());
+        out = out + "fn" + "(" + StringUtils.join(list, ",") + "){\n" + Body.string() + "\n}";
         return out;
     }
 }
+
+class TypeArray implements Object{
+    private List<Object>Elements;
+
+    public TypeArray(List<Object> elements) {
+        Elements = elements;
+    }
+
+    public List<Object> getElements() {
+        return Elements;
+    }
+
+    public void setElements(List<Object> elements) {
+        Elements = elements;
+    }
+
+    @Override
+    public String ObjectType() {
+        return ObjectType.ARRAY_OBJ;
+    }
+
+    @Override
+    public String Inspect() {
+        String out = "";
+        List<String> list = new ArrayList<>();
+        for (Object o : Elements) list.add(o.Inspect());
+        out = out  + "[" + StringUtils.join(list, ",") +"]";
+        return out;
+    }
+}
+
