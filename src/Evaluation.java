@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Evaluation {
     TypeBoolean True = new TypeBoolean(true);
@@ -49,6 +51,8 @@ public class Evaluation {
                 Object left = Eval(((IndexExpression) node).getLeft(), environment);
                 Object index = Eval(((IndexExpression) node).getIndex(), environment);
                 return evalIndexExpression(left, index);
+            case HashLiteral:
+                return evalHashLiteral(node, environment);
             default:
                 return Null;
         }
@@ -192,7 +196,25 @@ public class Evaluation {
     public Object evalIndexExpression(Object left, Object index) {
         if (left.ObjectType().equals("ARRAY") && index.ObjectType().equals("INTEGER"))
             return evalArrayIndexExpression(left, index);
+        else if (left.ObjectType().equals("HASH")) {
+            return evalHashIndexExpression(left, index);
+        }
         return Null;
+    }
+
+    public Object evalHashLiteral(AST node, Environment environment) {
+        HashLiteral hashLiteral = (HashLiteral) node;
+        Map<TypeHashKey, TypeHashPair> pairs = new HashMap<>();
+        Map<Expression, Expression> map = hashLiteral.getMap();
+        for (Map.Entry<Expression, Expression> entry : map.entrySet()) {
+            Expression key = entry.getKey();
+            Object keyObject = Eval(key, environment);
+            TypeHashKey typeHashKey = keyObject.HashKey();
+            Expression value = entry.getValue();
+            Object valueObject = Eval(value, environment);
+            pairs.put(typeHashKey, new TypeHashPair(keyObject, valueObject));
+        }
+        return new TypeHash(pairs);
     }
 
     public Object evalArrayIndexExpression(Object left, Object index) {
@@ -202,6 +224,17 @@ public class Evaluation {
             return Null;
         }
         return elements.get(num);
+    }
+
+    public Object evalHashIndexExpression(Object left, Object index) {
+        TypeHash hash = (TypeHash) left;
+        Map<TypeHashKey, TypeHashPair> pairs = hash.getPairs();
+        for (Map.Entry<TypeHashKey, TypeHashPair> entry : pairs.entrySet()) {
+            if(entry.getKey().getValue()==index.HashKey().getValue()){
+                return entry.getValue().getValue();
+            }
+        }
+        return Null;
     }
 
     public Object applyFunction(Object fn, List<Object> args) {

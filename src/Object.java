@@ -1,5 +1,6 @@
 import com.sun.deploy.util.StringUtils;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -17,10 +18,14 @@ class ObjectType {
             HASH_OBJ = "HASH";
 }
 
-public interface Object {
+public interface Object extends Hashable {
     String ObjectType();
 
     String Inspect();
+}
+
+interface Hashable {
+    TypeHashKey HashKey();
 }
 
 //integer
@@ -47,6 +52,11 @@ class TypeInteger implements Object {
     @Override
     public String Inspect() {
         return String.valueOf(Value);
+    }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return new TypeHashKey(ObjectType(), Value);
     }
 }
 
@@ -75,6 +85,16 @@ class TypeBoolean implements Object {
     public String Inspect() {
         return String.valueOf(Value);
     }
+
+    public TypeHashKey HashKey() {
+        int value;
+        if (Value) {
+            value = 1;
+        } else {
+            value = 0;
+        }
+        return new TypeHashKey(ObjectType(), value);
+    }
 }
 
 class TypeString implements Object {
@@ -101,6 +121,11 @@ class TypeString implements Object {
     public String Inspect() {
         return Value;
     }
+
+    public TypeHashKey HashKey() {
+        int hashCode = Value.hashCode();
+        return new TypeHashKey(ObjectType(), hashCode);
+    }
 }
 
 //null
@@ -117,6 +142,11 @@ class TypeNULL implements Object {
     @Override
     public String Inspect() {
         return "null";
+    }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return null;
     }
 }
 
@@ -143,6 +173,11 @@ class TypeReturnValue implements Object {
     @Override
     public String Inspect() {
         return Value.Inspect();
+    }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return null;
     }
 }
 
@@ -194,6 +229,11 @@ class TypeFunction implements Object {
         out = out + "fn" + "(" + StringUtils.join(list, ",") + "){\n" + Body.string() + "\n}";
         return out;
     }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return null;
+    }
 }
 
 class TypeArray implements Object {
@@ -224,6 +264,11 @@ class TypeArray implements Object {
         out = out + "[" + StringUtils.join(list, ",") + "]";
         return out;
     }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return null;
+    }
 }
 
 //hash
@@ -249,15 +294,91 @@ class TypeHash implements Object {
 
     @Override
     public String Inspect() {
+        String out = "";
+        List<String> list = new ArrayList<>();
+        for (Map.Entry<TypeHashKey, TypeHashPair> p : Pairs.entrySet()) {
+            String str = p.getKey().Inspect() + p.getValue().Inspect();
+            list.add(str);
+        }
+        out = out + "{" + StringUtils.join(list, ",") + "}";
+        return out;
+    }
+
+    @Override
+    public TypeHashKey HashKey() {
         return null;
     }
 }
 
-//hashkey
+//hashPair
+class TypeHashPair implements Object {
+    private Object Key;
+    private Object Value;
+
+    public Object getKey() {
+        return Key;
+    }
+
+    public void setKey(Object key) {
+        Key = key;
+    }
+
+    public Object getValue() {
+        return Value;
+    }
+
+    public void setValue(Object value) {
+        Value = value;
+    }
+
+    public TypeHashPair(Object key, Object value) {
+        Key = key;
+        Value = value;
+    }
+
+    @Override
+    public String ObjectType() {
+        return null;
+    }
+
+    @Override
+    public String Inspect() {
+        return "Key:" + Key.Inspect() + ",Value:" + Value.Inspect()+"  ";
+    }
+
+    @Override
+    public TypeHashKey HashKey() {
+        return null;
+    }
+}
+
+
+//hashKey
 class TypeHashKey implements Object {
-    private ObjectType Type;
+    private String Type;
     private int Value;
 
+    public TypeHashKey(String type, int value) {
+        Type = type;
+        Value = value;
+    }
+
+    public String getType() {
+        return Type;
+    }
+
+    public void setType(String type) {
+        Type = type;
+    }
+
+    public int getValue() {
+        return Value;
+    }
+
+    public void setValue(int value) {
+        Value = value;
+    }
+
     @Override
     public String ObjectType() {
         return null;
@@ -265,20 +386,11 @@ class TypeHashKey implements Object {
 
     @Override
     public String Inspect() {
-        return null;
-    }
-}
-
-//hashpair
-class TypeHashPair implements Object {
-
-    @Override
-    public String ObjectType() {
-        return null;
+        return "  Hash:" + Value + "    ";
     }
 
     @Override
-    public String Inspect() {
+    public TypeHashKey HashKey() {
         return null;
     }
 }
