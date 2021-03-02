@@ -18,6 +18,8 @@ public class Evaluation {
                 return nativeBoolToBoolean(((Boolean) node).getValue());
             case StringLiteral:
                 return new TypeString(((StringLiteral) node).getValue());
+            case ArrayLiteral:
+                return new TypeArray(evalExpressions(((ArrayLiteral) node).getElements(), environment));
             case PrefixExpression:
                 return evalPrefixExpression((PrefixExpression) node, environment);
             case InfixExpression:
@@ -43,6 +45,10 @@ public class Evaluation {
                 Object function = Eval(((CallExpression) node).getFunction(), environment);
                 List<Object> arguments = evalExpressions(((CallExpression) node).getArguments(), environment);
                 return applyFunction(function, arguments);
+            case IndexExpression:
+                Object left = Eval(((IndexExpression) node).getLeft(), environment);
+                Object index = Eval(((IndexExpression) node).getIndex(), environment);
+                return evalIndexExpression(left, index);
             default:
                 return Null;
         }
@@ -125,9 +131,9 @@ public class Evaluation {
     }
 
     public Object evalStringInfixExpression(String operator, Object left, Object right) {
-        switch (operator){
+        switch (operator) {
             case "+":
-                return new TypeString(((TypeString)left).getValue()+((TypeString)right).getValue());
+                return new TypeString(((TypeString) left).getValue() + ((TypeString) right).getValue());
             default:
                 return Null;
         }
@@ -181,6 +187,21 @@ public class Evaluation {
             list.add(eval);
         }
         return list;
+    }
+
+    public Object evalIndexExpression(Object left, Object index) {
+        if (left.ObjectType().equals("ARRAY") && index.ObjectType().equals("INTEGER"))
+            return evalArrayIndexExpression(left, index);
+        return Null;
+    }
+
+    public Object evalArrayIndexExpression(Object left, Object index) {
+        List<Object> elements = ((TypeArray) left).getElements();
+        int num = ((TypeInteger) index).getValue();
+        if (num < 0 || num > (elements.size() - 1)) {
+            return Null;
+        }
+        return elements.get(num);
     }
 
     public Object applyFunction(Object fn, List<Object> args) {

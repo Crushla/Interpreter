@@ -96,8 +96,10 @@ public class Lexer {
                 break;
             case '[':
                 token = new Token(TokenType.LBRACKET, "[");
+                break;
             case ']':
                 token = new Token(TokenType.RBRACKET, "]");
+                break;
             case '\0':
                 token = new Token(TokenType.EOF, "");
                 break;

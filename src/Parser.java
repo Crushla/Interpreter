@@ -285,7 +285,7 @@ public class Parser {
 
     //数组
     public Expression parseArrayLiteral() {
-        return new ArrayLiteral(curToken, parseCallArguments());
+        return new ArrayLiteral(curToken, parseCallArguments(TokenType.RBRACKET));
     }
 
     //()组
@@ -391,13 +391,13 @@ public class Parser {
 
     //函数调用
     public Expression parseCallExpression(Expression function) {
-        return new CallExpression(curToken, function, parseCallArguments());
+        return new CallExpression(curToken, function, parseCallArguments(TokenType.RPAREN));
     }
 
     //函数调用的的参数
-    public List<Expression> parseCallArguments() {
+    public List<Expression> parseCallArguments(TokenType end) {
         List<Expression> arguments = new ArrayList<>();
-        if (peekTokenIs(TokenType.RPAREN)) {
+        if (peekTokenIs(end)) {
             nextToken();
             return arguments;
         }
@@ -408,7 +408,7 @@ public class Parser {
             nextToken();
             arguments.add(parseExpression(precedences.LOWEST));
         }
-        if (!expectPeek(TokenType.RPAREN)) {
+        if (!expectPeek(end)) {
             return null;
         }
         return arguments;
