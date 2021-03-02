@@ -48,7 +48,7 @@ enum TokenType {
 
     COMMA,    //,
     SEMICOLON,//;
-
+    COLON,    //:
     LPAREN,   //(
     RPAREN,   //)
     LBRACE,   //{

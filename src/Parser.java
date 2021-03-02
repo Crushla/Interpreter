@@ -199,6 +199,8 @@ public class Parser {
                 return parseString();
             case LBRACKET:
                 return parseArrayLiteral();
+            case LBRACE:
+                return parseHashLiteral();
             case MINUS:
             case BANG:
                 return parsePrefixExpression();
@@ -286,6 +288,13 @@ public class Parser {
     //数组
     public Expression parseArrayLiteral() {
         return new ArrayLiteral(curToken, parseCallArguments(TokenType.RBRACKET));
+    }
+
+    //hash
+    public Expression parseHashLiteral() {
+        Token token = curToken;
+        Map<Expression, Expression> map = parseHashArguments(TokenType.RBRACE);
+        return new HashLiteral(token, map);
     }
 
     //()组
@@ -407,6 +416,28 @@ public class Parser {
             nextToken();
             nextToken();
             arguments.add(parseExpression(precedences.LOWEST));
+        }
+        if (!expectPeek(end)) {
+            return null;
+        }
+        return arguments;
+    }
+
+    //hash参数
+    public Map<Expression, Expression> parseHashArguments(TokenType end) {
+        Map<Expression, Expression> arguments = new HashMap<>();
+        while (!peekTokenIs(end)) {
+            nextToken();
+            Expression key = parseExpression(precedences.LOWEST);
+            if (!expectPeek(TokenType.COLON)) {
+                return null;
+            }
+            nextToken();
+            Expression value = parseExpression(precedences.LOWEST);
+            arguments.put(key, value);
+            if (!peekTokenIs(TokenType.RBRACE) && !expectPeek(TokenType.COMMA)) {
+                return null;
+            }
         }
         if (!expectPeek(end)) {
             return null;

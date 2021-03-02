@@ -2,6 +2,7 @@ import com.sun.deploy.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 enum NodeType {
     Program,
@@ -19,7 +20,8 @@ enum NodeType {
     FunctionLiteral,
     CallExpression,
     ArrayLiteral,
-    IndexExpression,
+    HashLiteral,
+    IndexExpression
 }
 
 public interface AST {
@@ -638,7 +640,56 @@ class ArrayLiteral extends Expression {
         return out;
     }
 }
+//hash
+class HashLiteral extends Expression{
+    private Token Token;
+    private Map<Expression,Expression> map;
 
+    public HashLiteral(Token token, Map<Expression, Expression> map) {
+        Token = token;
+        this.map = map;
+    }
+
+    @Override
+    public Token getToken() {
+        return Token;
+    }
+
+    @Override
+    public void setToken(Token token) {
+        Token = token;
+    }
+
+    public Map<Expression, Expression> getMap() {
+        return map;
+    }
+
+    public void setMap(Map<Expression, Expression> map) {
+        this.map = map;
+    }
+
+    @Override
+    public String TokenLiteral() {
+        return Token.getLiteral();
+    }
+
+    @Override
+    public NodeType NodeType() {
+        return NodeType.HashLiteral;
+    }
+
+    @Override
+    public String string() {
+        String out="";
+        List<String>list=new ArrayList<>();
+        for (Map.Entry<Expression,Expression> entry:map.entrySet()){
+            String str=entry.getKey().string()+":"+entry.getValue().string();
+            list.add(str);
+        }
+        out = out + "{" + StringUtils.join(list, ",") + "}";
+        return out;
+    }
+}
 class IFExpression extends Expression {
     private Token Token;
     private Expression Condition;
