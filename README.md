@@ -1,7 +1,7 @@
 # Interpreter
-##一个Java写的Monkey解释器
+## 一个Java写的Monkey解释器
 ___
-##语法
+## 语法
 数值类型有三种  int   bool null
 
 true==false  false
